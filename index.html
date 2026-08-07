@@ -431,7 +431,7 @@
         const TableContent = ({ onBack }) => {
             const days = ['จันทร์', 'อังคาร', 'พุธ', 'พฤหัสบดี', 'ศุกร์', 'เสาร์', 'อาทิตย์'];
             return (
-                <div className="bg-[#faf9f6] min-h-screen print:min-h-0 print:bg-white flex flex-col animate-fade-in">
+                <div className="bg-[#faf9f6] min-h-screen print:min-h-0 print:bg-white flex flex-col animate-fade-in print:block">
                     <div className="p-5 no-print border-b border-gray-200 bg-white shadow-sm flex justify-between items-center sticky top-0 z-10">
                         <div className="flex items-center gap-3">
                             <button onClick={onBack} className="p-2 bg-gray-100 text-gray-700 rounded-full active:scale-95 transition-transform shadow-sm border border-gray-200">
@@ -635,8 +635,7 @@
             const [activeMenu, setActiveMenu] = useState('main'); // หน้าเริ่มต้น
 
             return (
-  <div className="max-w-md mx-auto relative min-h-screen bg-[#f0f9ff] shadow-2xl overflow-x-hidden print:max-w-none print:w-full print:shadow-none print:bg-white print:overflow-visible print:mx-0">
-                    <div className="h-full">
+                <div className="max-w-md mx-auto relative min-h-screen bg-[#f0f9ff] shadow-2xl overflow-x-hidden print:max-w-none print:w-full print:shadow-none print:bg-white print:overflow-visible print:mx-0">
                     <div className="h-full print:h-auto print:w-full">
                         {/* Main Menu UI - สไตล์คล้ายแอป SuperPS */}
                         {activeMenu === 'main' && (
