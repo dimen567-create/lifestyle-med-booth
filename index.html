@@ -635,8 +635,9 @@
             const [activeMenu, setActiveMenu] = useState('main'); // หน้าเริ่มต้น
 
             return (
-                <div className="max-w-md mx-auto relative min-h-screen bg-[#f0f9ff] shadow-2xl overflow-x-hidden">
+  <div className="max-w-md mx-auto relative min-h-screen bg-[#f0f9ff] shadow-2xl overflow-x-hidden print:max-w-none print:w-full print:shadow-none print:bg-white print:overflow-visible print:mx-0">
                     <div className="h-full">
+                    <div className="h-full print:h-auto print:w-full">
                         {/* Main Menu UI - สไตล์คล้ายแอป SuperPS */}
                         {activeMenu === 'main' && (
                             <div className="pb-12 px-5 pt-12 no-print min-h-screen bg-gradient-to-b from-[#f0f9ff] to-[#e0f2fe] animate-fade-in flex flex-col items-center">
