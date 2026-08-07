@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Lifestyle Medicine App</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Prompt', sans-serif;
+            background: linear-gradient(180deg, #f0f9ff 0%, #dbeafe 100%);
+            background-attachment: fixed;
+            min-height: 100vh;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        /* SuperPS Card Design */
+        .superps-card {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.025);
+            transition: all 0.2s ease;
+        }
+        .superps-card:active { transform: scale(0.95); }
+        .superps-card::before {
+            content: ''; position: absolute; top: -20px; left: -20px; width: 120px; height: 120px;
+            background: rgba(255, 255, 255, 0.6); border-radius: 50%; z-index: 0;
+        }
+        .superps-card::after {
+            content: ''; position: absolute; bottom: -30px; right: -10px; width: 90px; height: 90px;
+            background: rgba(255, 255, 255, 0.4); border-radius: 50%; z-index: 0;
+        }
+        .card-content { position: relative; z-index: 1; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+
+        /* Print Styles */
+        @media print {
+            body { background: white !important; }
+            .no-print { display: none !important; }
+            .print-only { display: block !important; width: 100%; margin: 0; padding: 0; }
+            @page { size: A4 landscape; margin: 10mm; }
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        const LucideIcon = ({ name, size = 24, color = "currentColor" }) => {
+            const spanRef = useRef(null);
+            useEffect(() => {
+                if (spanRef.current && window.lucide) {
+                    spanRef.current.innerHTML = `<i data-lucide="${name}" style="width:${size}px; height:${size}px; color:${color};"></i>`;
+                    window.lucide.createIcons();
+                }
+            }, [name, size, color]);
+            return <span ref={spanRef} className="inline-flex items-center justify-center" style={{ width: size, height: size }}></span>;
+        };
+
+        const renderIcon = (name, size = 24, color = "currentColor") => {
+            return <LucideIcon name={name} size={size} color={color} />;
+        };
+
+        const gripM = [[24,0.50,0.60,0.69,0.79],[29,0.51,0.61,0.70,0.80],[34,0.52,0.61,0.70,0.79],[39,0.50,0.59,0.68,0.77],[44,0.41,0.51,0.62,0.72],[49,0.36,0.49,0.60,0.71],[54,0.35,0.47,0.58,0.68],[59,0.34,0.46,0.57,0.68]];
+        const gripF = [[24,0.40,0.48,0.55,0.63],[29,0.40,0.49,0.58,0.67],[34,0.42,0.52,0.62,0.68],[39,0.37,0.45,0.54,0.62],[44,0.36,0.44,0.53,0.61],[49,0.35,0.43,0.52,0.60],[54,0.32,0.39,0.46,0.53],[59,0.30,0.38,0.45,0.51]];
+        const chair60M = [[24,31,38,45,53],[29,30,38,46,52],[34,25,33,42,51],[39,24,33,41,49],[44,24,32,40,47],[49,22,29,37,45],[54,19,27,35,42],[59,18,25,33,40]];
+        const chair60F = [[24,24,32,40,48],[29,23,30,38,45],[34,22,29,37,44],[39,21,28,35,42],[44,20,26,33,40],[49,16,22,28,35],[54,12,18,24,30],[59,11,17,23,29]];
+        const chair30M = [[64,17,22,27,32],[69,14,20,25,30]];
+        const chair30F = [[64,15,20,25,28],[69,12,16,21,25]];
+        const knee3M = [[7,86,107,129,140],[8,88,108,128,146],[9,88,111,134,151],[10,90,114,139,157],[11,96,120,144,158],[12,97,121,145,161],[13,98,123,149,168],[14,104,129,154,170],[15,104,130,155,172],[16,106,131,156,175],[17,108,135,161,180],[18,108,135,162,187],[24,117,140,163,186],[29,113,137,160,183],[34,110,133,157,180],[39,107,131,154,178],[44,101,127,152,178],[49,100,126,151,176],[54,99,124,149,174],[59,96,122,148,173]];
+        const knee3F = [[7,82,103,123,136],[8,84,106,127,141],[9,87,107,128,141],[10,89,110,131,145],[11,91,113,135,150],[12,95,116,138,150],[13,96,117,139,151],[14,100,123,146,159],[15,101,124,147,164],[16,102,125,149,171],[17,104,129,153,174],[18,107,131,156,180],[24,109,132,154,177],[29,104,128,152,176],[34,97,123,149,175],[39,97,122,147,172],[44,96,121,146,170],[49,93,118,144,170],[54,87,114,142,169],[59,83,110,137,163]];
+        const knee2M = [[64,71,91,111,131],[69,70,89,109,128]];
+        const knee2F = [[64,64,86,107,129],[69,57,79,101,123]];
+
+        const evalScore = (val, thresholds) => {
+            if (val <= thresholds[0]) return 'ต่ำมาก';
+            if (val <= thresholds[1]) return 'ต่ำ';
+            if (val <= thresholds[2]) return 'ปานกลาง';
+            if (val <= thresholds[3]) return 'ดี';
+            return 'ดีมาก';
+        };
+
+        const getAssessmentResult = (type, val, age, gender) => {
+            if (!val || !age) return null;
+            let numAge = parseInt(age);
+            let tableM, tableF;
+            
+            if (type === 'grip') { tableM = gripM; tableF = gripF; } 
+            else if (type === 'chair') {
+                if (numAge < 60) { tableM = chair60M; tableF = chair60F; }
+                else { tableM = chair30M; tableF = chair30F; }
+            } 
+            else if (type === 'knee') {
+                if (numAge < 60) { tableM = knee3M; tableF = knee3F; }
+                else { tableM = knee2M; tableF = knee2F; }
+            }
+            
+            let table = gender === 'M' ? tableM : tableF;
+            let row = table.find(r => numAge <= r[0]);
+            if (!row) row = table[table.length - 1];
+            
+            return evalScore(parseFloat(val), [row[1], row[2], row[3], row[4]]);
+        };
+
+        const getBadgeColor = (res) => {
+            if(res === 'ดีมาก') return 'bg-green-500';
+            if(res === 'ดี') return 'bg-blue-500';
+            if(res === 'ปานกลาง') return 'bg-yellow-500';
+            if(res === 'ต่ำ') return 'bg-orange-500';
+            if(res === 'ต่ำมาก') return 'bg-red-500';
+            return 'bg-gray-400';
+        };
+
+        const FittContent = ({ onBack }) => {
+            const [activeDetail, setActiveDetail] = useState(null);
+
+            if (activeDetail === 'F') {
+                return (
+                    <div className="bg-white min-h-screen no-print pb-12 animate-fade-in">
+                        <div className="relative h-64">
+                            <img src="https://images.unsplash.com/photo-1512314889357-e157c22f938d?w=800&auto=format&fit=crop" className="w-full h-full object-cover" alt="Calendar" />
+                            <button onClick={() => setActiveDetail(null)} className="absolute top-4 left-4 bg-white/90 p-2.5 rounded-full shadow-lg backdrop-blur-sm active:scale-95 text-gray-800">
+                                {renderIcon("chevron-left", 24)}
+                            </button>
+                        </div>
+                        <div className="p-6 -mt-10 relative bg-white rounded-t-3xl shadow-[0_-10px_15px_-3px_rgba(0,0,0,0.1)]">
+                            <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-100 text-blue-700 font-bold rounded-full text-sm mb-4">
+                                {renderIcon("calendar-days", 16)} F - Frequency
+                            </div>
+                            <h2 className="text-2xl font-extrabold text-gray-800 mb-4">ความถี่ (กี่วันต่อสัปดาห์?)</h2>
+                            <div className="space-y-4 text-gray-600 leading-relaxed text-[15px]">
+                                <p>การจัดความถี่ของการออกกำลังกายมีความสำคัญต่อ <strong>"การฟื้นฟูของกล้ามเนื้อ"</strong> (Muscle Recovery) และระบบหัวใจ โดยทั่วไปแนะนำให้ออกกำลังกาย 3-5 วันต่อสัปดาห์</p>
+                                <div className="bg-blue-50/50 p-5 rounded-2xl border border-blue-100">
+                                    <ul className="space-y-4 text-[14px]">
+                                        <li className="flex gap-3">
+                                            <div className="mt-1 text-blue-500">{renderIcon("activity", 18)}</div>
+                                            <div><strong>Cardio (คาร์ดิโอ):</strong> 3-5 วัน/สัปดาห์ หรือทำต่อเนื่องวันละ 30 นาทีเพื่อหัวใจที่แข็งแรง</div>
+                                        </li>
+                                        <li className="flex gap-3">
+                                            <div className="mt-1 text-blue-500">{renderIcon("dumbbell", 18)}</div>
+                                            <div><strong>Strength (เวทเทรนนิ่ง):</strong> 2-3 วัน/สัปดาห์ <span className="text-red-500 font-medium">*ควรพักกล้ามเนื้อมัดที่ใช้งานอย่างน้อย 48 ชั่วโมง</span> เพื่อให้เกิดการซ่อมแซม</div>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                );
+            }
+            
+            if (activeDetail === 'I') {
+                return (
+                    <div className="bg-white min-h-screen no-print pb-12 animate-fade-in">
+                        <div className="relative h-64">
+                            <img src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=800&auto=format&fit=crop" className="w-full h-full object-cover" alt="Intensity" />
+                            <button onClick={() => setActiveDetail(null)} className="absolute top-4 left-4 bg-white/90 p-2.5 rounded-full shadow-lg backdrop-blur-sm active:scale-95 text-gray-800">
+                                {renderIcon("chevron-left", 24)}
+                            </button>
+                        </div>
+                        <div className="p-6 -mt-10 relative bg-white rounded-t-3xl shadow-[0_-10px_15px_-3px_rgba(0,0,0,0.1)]">
+                            <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-purple-100 text-purple-700 font-bold rounded-full text-sm mb-4">
+                                {renderIcon("flame", 16)} I - Intensity
+                            </div>
+                            <h2 className="text-2xl font-extrabold text-gray-800 mb-4">ความหนัก (เหนื่อยแค่ไหน?)</h2>
+                            <div className="space-y-4">
+                                <div className="bg-gray-50 p-4 rounded-2xl border border-gray-200">
+                                    <h3 className="font-bold text-gray-800 mb-3 text-[15px] flex items-center gap-2">
+                                        {renderIcon("mic", 18, "#9333ea")} 1. Talk Test (ประเมินจากการพูด)
+                                    </h3>
+                                    <ul className="space-y-3 text-[14px] text-gray-600">
+                                        <li>🟢 <strong>เบา:</strong> ร้องเพลงได้จบเพลงสบายๆ</li>
+                                        <li>🟡 <strong>ปานกลาง:</strong> พูดเป็นประโยคได้ แต่ร้องเพลงไม่ได้ <span className="text-purple-600 text-xs">(แนะนำที่สุด)</span></li>
+                                        <li>🔴 <strong>หนัก:</strong> พูดได้ทีละคำ หอบเหนื่อยมาก</li>
+                                    </ul>
+                                </div>
+                                <div className="bg-purple-50 p-4 rounded-2xl border border-purple-100">
+                                    <h3 className="font-bold text-gray-800 mb-2 text-[15px] flex items-center gap-2">
+                                        {renderIcon("heart-pulse", 18, "#9333ea")} 2. Heart Rate (ชีพจร)
+                                    </h3>
+                                    <div className="bg-white px-3 py-2 rounded-lg text-sm text-center mb-3 font-medium text-purple-800 border border-purple-100">
+                                        Max HR (ชีพจรสูงสุด) = 220 - อายุ
+                                    </div>
+                                    <ul className="space-y-2 text-[13px] text-gray-600">
+                                        <li className="flex justify-between border-b border-purple-100 pb-1"><span>เบา</span> <span>50-63% Max HR</span></li>
+                                        <li className="flex justify-between border-b border-purple-100 pb-1 font-bold text-purple-700"><span>ปานกลาง</span> <span>64-76% Max HR</span></li>
+                                        <li className="flex justify-between text-red-700"><span>หนัก</span> <span>77-93% Max HR</span></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                );
+            }
+
+            if (activeDetail === 'T1') {
+                return (
+                    <div className="bg-white min-h-screen no-print pb-12 animate-fade-in">
+                        <div className="relative h-64">
+                            <img src="https://images.unsplash.com/photo-1499540633125-484965b60031?w=800&auto=format&fit=crop" className="w-full h-full object-cover" alt="Time" />
+                            <button onClick={() => setActiveDetail(null)} className="absolute top-4 left-4 bg-white/90 p-2.5 rounded-full shadow-lg backdrop-blur-sm active:scale-95 text-gray-800">
+                                {renderIcon("chevron-left", 24)}
+                            </button>
+                        </div>
+                        <div className="p-6 -mt-10 relative bg-white rounded-t-3xl shadow-[0_-10px_15px_-3px_rgba(0,0,0,0.1)]">
+                            <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-green-100 text-green-700 font-bold rounded-full text-sm mb-4">
+                                {renderIcon("timer", 16)} T - Time
+                            </div>
+                            <h2 className="text-2xl font-extrabold text-gray-800 mb-4">ระยะเวลา (นานแค่ไหน?)</h2>
+                            <div className="space-y-4 text-gray-600 leading-relaxed text-[15px]">
+                                <p>ขึ้นอยู่กับ "ความหนัก" (Intensity) ของกิจกรรมในวันนั้น:</p>
+                                <div className="bg-white p-4 rounded-2xl shadow-sm border border-l-4 border-l-yellow-400">
+                                    <h4 className="font-bold text-gray-800 mb-1">กิจกรรมระดับปานกลาง</h4>
+                                    <p className="text-sm text-gray-500 mb-2">เดินเร็ว, ปั่นจักรยาน, ว่ายน้ำชิลๆ</p>
+                                    <div className="inline-block bg-yellow-50 text-yellow-700 font-semibold px-3 py-1 rounded-lg text-sm">150 - 300 นาที/สัปดาห์</div>
+                                </div>
+                                <div className="bg-white p-4 rounded-2xl shadow-sm border border-l-4 border-l-red-400">
+                                    <h4 className="font-bold text-gray-800 mb-1">กิจกรรมระดับหนัก</h4>
+                                    <p className="text-sm text-gray-500 mb-2">วิ่ง, ชกมวย, กระโดดเชือก</p>
+                                    <div className="inline-block bg-red-50 text-red-700 font-semibold px-3 py-1 rounded-lg text-sm">75 - 150 นาที/สัปดาห์</div>
+                                </div>
+                                <div className="text-[13px] text-green-800 bg-green-50 p-3 rounded-xl">
+                                    <strong>*ข้อควรระวัง:</strong> เวลาเหล่านี้ไม่รวม Warm-up และ Cool-down (อย่างละ 5-10 นาที)
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                );
+            }
+
+            if (activeDetail === 'T2') {
+                return (
+                    <div className="bg-white min-h-screen no-print pb-12 animate-fade-in">
+                        <div className="relative h-64 flex">
+                            <img src="https://images.unsplash.com/photo-1530143311094-34d807799e8f?w=300&auto=format&fit=crop" className="w-1/3 h-full object-cover" alt="Cardio" />
+                            <img src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=300&auto=format&fit=crop" className="w-1/3 h-full object-cover border-x-2 border-white/50" alt="Strength" />
+                            <img src="https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=300&auto=format&fit=crop" className="w-1/3 h-full object-cover" alt="Flexibility" />
+                            <div className="absolute inset-0 bg-black/10"></div>
+                            <button onClick={() => setActiveDetail(null)} className="absolute top-4 left-4 bg-white/90 p-2.5 rounded-full shadow-lg backdrop-blur-sm active:scale-95 text-gray-800 z-10">
+                                {renderIcon("chevron-left", 24)}
+                            </button>
+                        </div>
+                        <div className="p-6 -mt-10 relative bg-white rounded-t-3xl shadow-[0_-10px_15px_-3px_rgba(0,0,0,0.1)]">
+                            <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-pink-100 text-pink-700 font-bold rounded-full text-sm mb-4">
+                                {renderIcon("layout-list", 16)} T - Type
+                            </div>
+                            <h2 className="text-2xl font-extrabold text-gray-800 mb-4">รูปแบบ (ออกกำลังกายอะไร?)</h2>
+                            <p className="text-[15px] text-gray-600 mb-5">ควรประกอบไปด้วย 3 รูปแบบหลัก เพื่อความสมดุล:</p>
+                            <div className="space-y-4">
+                                <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex gap-4 items-center">
+                                    <div className="bg-red-50 p-3 rounded-2xl">{renderIcon("activity", 28, "#ef4444")}</div>
+                                    <div>
+                                        <h4 className="font-bold text-gray-800 text-[15px]">1. แอโรบิก (Cardio)</h4>
+                                        <p className="text-[13px] text-gray-500 mt-1">วิ่ง ว่ายน้ำ (หัวใจแข็งแรง ลดไขมัน)</p>
+                                    </div>
+                                </div>
+                                <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex gap-4 items-center">
+                                    <div className="bg-blue-50 p-3 rounded-2xl">{renderIcon("dumbbell", 28, "#3b82f6")}</div>
+                                    <div>
+                                        <h4 className="font-bold text-gray-800 text-[15px]">2. แรงต้าน (Resistance)</h4>
+                                        <p className="text-[13px] text-gray-500 mt-1">ยกเวท (สร้างกล้ามเนื้อ เพิ่มระบบเผาผลาญ)</p>
+                                    </div>
+                                </div>
+                                <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex gap-4 items-center">
+                                    <div className="bg-teal-50 p-3 rounded-2xl">{renderIcon("person-standing", 28, "#14b8a6")}</div>
+                                    <div>
+                                        <h4 className="font-bold text-gray-800 text-[15px]">3. ยืดหยุ่น (Flexibility)</h4>
+                                        <p className="text-[13px] text-gray-500 mt-1">โยคะ (ลดบาดเจ็บ เพิ่มระยะเคลื่อนไหว)</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                );
+            }
+
+            return (
+                <div className="pb-12 px-5 pt-8 no-print min-h-screen animate-fade-in">
+                    <button onClick={onBack} className="mb-6 inline-flex items-center gap-1 px-3 py-1.5 bg-gray-100 text-gray-700 rounded-full text-sm font-medium active:scale-95 transition-transform shadow-sm border border-gray-200">
+                        {renderIcon("arrow-left", 16)} กลับหน้าหลัก
+                    </button>
+                    <div className="mb-8">
+                        <h1 className="text-3xl font-extrabold text-blue-900 mb-1">หลักการ FITT</h1>
+                        <p className="text-blue-700 font-medium opacity-80 text-sm">การออกแบบโปรแกรมออกกำลังกาย</p>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                        <div onClick={() => setActiveDetail('F')} className="superps-card bg-gradient-to-br from-[#e0f2fe] to-[#bae6fd] rounded-[24px] p-5 cursor-pointer">
+                            <div className="card-content">
+                                <div className="bg-white/70 w-12 h-12 rounded-2xl flex items-center justify-center mb-4 shadow-sm backdrop-blur-md">
+                                    {renderIcon("calendar-check", 24, "#0369a1")}
+                                </div>
+                                <h3 className="font-bold text-gray-800 text-lg">ความถี่</h3>
+                                <p className="text-xs text-gray-600 mt-1 flex items-center gap-1">Frequency {renderIcon("chevron-right", 12)}</p>
+                            </div>
+                        </div>
+                        <div onClick={() => setActiveDetail('I')} className="superps-card bg-gradient-to-br from-[#f3e8ff] to-[#e9d5ff] rounded-[24px] p-5 cursor-pointer">
+                            <div className="card-content">
+                                <div className="bg-white/70 w-12 h-12 rounded-2xl flex items-center justify-center mb-4 shadow-sm backdrop-blur-md">
+                                    {renderIcon("flame", 24, "#7e22ce")}
+                                </div>
+                                <h3 className="font-bold text-gray-800 text-lg">ความหนัก</h3>
+                                <p className="text-xs text-gray-600 mt-1 flex items-center gap-1">Intensity {renderIcon("chevron-right", 12)}</p>
+                            </div>
+                        </div>
+                        <div onClick={() => setActiveDetail('T1')} className="superps-card bg-gradient-to-br from-[#dcfce7] to-[#bbf7d0] rounded-[24px] p-5 cursor-pointer">
+                            <div className="card-content">
+                                <div className="bg-white/70 w-12 h-12 rounded-2xl flex items-center justify-center mb-4 shadow-sm backdrop-blur-md">
+                                    {renderIcon("clock", 24, "#15803d")}
+                                </div>
+                                <h3 className="font-bold text-gray-800 text-lg">เวลา</h3>
+                                <p className="text-xs text-gray-600 mt-1 flex items-center gap-1">Time {renderIcon("chevron-right", 12)}</p>
+                            </div>
+                        </div>
+                        <div onClick={() => setActiveDetail('T2')} className="superps-card bg-gradient-to-br from-[#fce7f3] to-[#fbcfe8] rounded-[24px] p-5 cursor-pointer">
+                            <div className="card-content">
+                                <div className="bg-white/70 w-12 h-12 rounded-2xl flex items-center justify-center mb-4 shadow-sm backdrop-blur-md">
+                                    {renderIcon("layout-list", 24, "#be185d")}
+                                </div>
+                                <h3 className="font-bold text-gray-800 text-lg">รูปแบบ</h3>
+                                <p className="text-xs text-gray-600 mt-1 flex items-center gap-1">Type {renderIcon("chevron-right", 12)}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const AgeContent = ({ onBack }) => {
+            return (
+                <div className="pb-12 px-5 pt-8 no-print min-h-screen bg-gray-50 animate-fade-in">
+                    <button onClick={onBack} className="mb-6 inline-flex items-center gap-1 px-3 py-1.5 bg-white text-gray-700 rounded-full text-sm font-medium active:scale-95 transition-transform shadow-sm border border-gray-100">
+                        {renderIcon("arrow-left", 16)} กลับหน้าหลัก
+                    </button>
+                    <div className="mb-6">
+                        <h1 className="text-2xl font-extrabold text-gray-800 mb-1">การออกกำลังกายตามวัย</h1>
+                        <p className="text-gray-500 text-sm">หลักการและเป้าหมายทางสรีรวิทยา</p>
+                    </div>
+                    <div className="space-y-6">
+                        {/* Kids */}
+                        <div className="bg-white rounded-[24px] shadow-sm overflow-hidden border border-gray-100">
+                            <div className="h-44 relative">
+                                <img src="https://images.unsplash.com/photo-1472162072942-cd5147eb3902?w=800&auto=format&fit=crop" className="w-full h-full object-cover" alt="Kids" />
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex items-end p-5">
+                                    <h3 className="text-xl font-bold text-white">วัยเด็กและวัยรุ่น</h3>
+                                </div>
+                            </div>
+                            <div className="p-5 space-y-4">
+                                <div className="bg-blue-50 p-3 rounded-xl text-[13px] text-blue-800 border border-blue-100">
+                                    <strong>ทำไมต้องวัยนี้?</strong> เป็นช่วงเดียวที่ร่างกายสะสม "มวลกระดูกสูงสุด" ได้ การกระแทกจากการเล่นกีฬาจะช่วยสร้างมวลกระดูกให้แข็งแรงไปตลอดชีวิต
+                                </div>
+                                <ul className="text-[14px] text-gray-600 space-y-2">
+                                    <li><strong>เป้าหมาย:</strong> พัฒนาทักษะเคลื่อนไหว และความแข็งแรงกระดูก</li>
+                                    <li><strong>รูปแบบ:</strong> กิจกรรมรับน้ำหนักตัว (วิ่ง กระโดดเชือก กีฬาเป็นทีม)</li>
+                                    <li><strong>เวลา:</strong> อย่างน้อย 60 นาที/วัน (สะสมได้)</li>
+                                </ul>
+                            </div>
+                        </div>
+                        {/* Adults */}
+                        <div className="bg-white rounded-[24px] shadow-sm overflow-hidden border border-gray-100">
+                            <div className="h-44 relative">
+                                <img src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=800&auto=format&fit=crop" className="w-full h-full object-cover" alt="Adults" />
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex items-end p-5">
+                                    <h3 className="text-xl font-bold text-white">วัยทำงาน</h3>
+                                </div>
+                            </div>
+                            <div className="p-5 space-y-4">
+                                <div className="bg-purple-50 p-3 rounded-xl text-[13px] text-purple-800 border border-purple-100">
+                                    <strong>ทำไมต้องวัยนี้?</strong> ระบบเผาผลาญเริ่มลดลง เสี่ยงออฟฟิศซินโดรมและโรค NCDs จำเป็นต้องสร้างกล้ามเนื้อเพื่อช่วยเผาผลาญ
+                                </div>
+                                <ul className="text-[14px] text-gray-600 space-y-2">
+                                    <li><strong>เป้าหมาย:</strong> รักษามวลกล้ามเนื้อ ควบคุมสัดส่วน ลดเครียด</li>
+                                    <li><strong>รูปแบบ:</strong> ผสมผสาน! Cardio เพื่อหัวใจ + Weight Training เพื่อกล้ามเนื้อ + โยคะยืดเหยียด</li>
+                                    <li><strong>เวลา:</strong> Cardio 150 นาที/สัปดาห์ + เวท 2-3 วัน</li>
+                                </ul>
+                            </div>
+                        </div>
+                        {/* Seniors */}
+                        <div className="bg-white rounded-[24px] shadow-sm overflow-hidden border border-gray-100">
+                            <div className="h-44 relative">
+                                <img src="https://images.pexels.com/photos/8940499/pexels-photo-8940499.jpeg?auto=compress&cs=tinysrgb&w=800" className="w-full h-full object-cover" alt="Seniors" />
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex items-end p-5">
+                                    <h3 className="text-xl font-bold text-white">วัยผู้สูงอายุ</h3>
+                                </div>
+                            </div>
+                            <div className="p-5 space-y-4">
+                                <div className="bg-teal-50 p-3 rounded-xl text-[13px] text-teal-800 border border-teal-100">
+                                    <strong>ทำไมต้องวัยนี้?</strong> ปัญหาหลักคือ "มวลกล้ามเนื้อฝ่อ" ทำให้ทรงตัวไม่อยู่ การหกล้มมีอันตรายถึงชีวิต
+                                </div>
+                                <ul className="text-[14px] text-gray-600 space-y-2">
+                                    <li><strong>เป้าหมาย:</strong> ป้องกันการหกล้ม (Fall Prevention)</li>
+                                    <li><strong>รูปแบบ:</strong> ฝึกการทรงตัว (Balance) และแรงต้านเบาๆ</li>
+                                    <li><strong>ความหนัก:</strong> ระดับเบา-ปานกลาง (Talk test: ร้องเพลงไม่ได้แต่พูดได้)</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const TableContent = ({ onBack }) => {
+            const days = ['จันทร์', 'อังคาร', 'พุธ', 'พฤหัสบดี', 'ศุกร์', 'เสาร์', 'อาทิตย์'];
+            return (
+                <div className="bg-[#faf9f6] min-h-screen flex flex-col animate-fade-in">
+                    <div className="p-5 no-print border-b border-gray-200 bg-white shadow-sm flex justify-between items-center sticky top-0 z-10">
+                        <div className="flex items-center gap-3">
+                            <button onClick={onBack} className="p-2 bg-gray-100 text-gray-700 rounded-full active:scale-95 transition-transform shadow-sm border border-gray-200">
+                                {renderIcon("arrow-left", 18)}
+                            </button>
+                            <div>
+                                <h2 className="font-bold text-gray-800">ตารางออกแบบ FITT</h2>
+                                <p className="text-xs text-gray-500">พิมพ์ใส่กระดาษ A4</p>
+                            </div>
+                        </div>
+                        <button onClick={() => window.print()} className="bg-[#8c7362] text-white px-4 py-2 rounded-xl text-sm font-medium shadow-md active:scale-95 flex items-center gap-2">
+                            {renderIcon("printer", 18)} ปริ้น PDF
+                        </button>
+                    </div>
+
+                    <div className="print-only p-4 md:p-8 w-full max-w-5xl mx-auto overflow-x-auto">
+                        <div className="min-w-[800px]">
+                            <div className="flex justify-between items-end border-b-2 border-[#8c7362] pb-4 mb-6">
+                                <h1 className="text-3xl font-bold text-[#5c4a3d]">ตารางการออกกำลังกายส่วนบุคคล</h1>
+                                <div className="text-xl text-[#5c4a3d] font-medium">เดือน : ..............................................</div>
+                            </div>
+                            <table className="w-full border-collapse bg-white shadow-sm">
+                                <thead>
+                                    <tr>
+                                        {days.map((day, i) => (
+                                            <th key={day} className={`p-3 text-center border border-[#e6ddd6] bg-[#f8f5f1] ${i >= 5 ? 'text-[#c27a7a]' : 'text-[#8c7362]'} font-semibold text-lg`}>
+                                                วัน{day}
+                                            </th>
+                                        ))}
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {[1, 2, 3, 4, 5].map((row) => (
+                                        <tr key={row}>
+                                            {[1, 2, 3, 4, 5, 6, 7].map((col) => (
+                                                <td key={col} className="p-2 border border-[#e6ddd6] h-[100px] align-top relative w-[14.28%]">
+                                                    <div className="w-6 h-6 rounded bg-[#f0eadd]"></div>
+                                                </td>
+                                            ))}
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                            <div className="mt-8 flex gap-12 text-xl text-[#5c4a3d] font-medium">
+                                <div>ชื่อ : .....................................................................</div>
+                                <div>อายุ : ...................... ปี</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const AssessmentContent = ({ onBack }) => {
+            const [gender, setGender] = useState('M');
+            const [age, setAge] = useState('');
+            const [weight, setWeight] = useState('');
+            
+            const [gripRaw, setGripRaw] = useState('');
+            const [gripScore, setGripScore] = useState(null);
+            const [gripRes, setGripRes] = useState('');
+
+            const [chairRaw, setChairRaw] = useState('');
+            const [kneeRaw, setKneeRaw] = useState('');
+
+            useEffect(() => {
+                setGripScore(null); setGripRes(''); setGripRaw('');
+                setChairRaw(''); setKneeRaw('');
+            }, [gender, age, weight]);
+
+            const numAge = parseInt(age);
+            const isValidAge = age !== '' && numAge >= 7 && numAge <= 69;
+            const showGrip = age !== '' && numAge >= 19 && numAge <= 59;
+            const showChair = age !== '' && numAge >= 19 && numAge <= 69;
+            const showKnee = age !== '' && numAge >= 7 && numAge <= 69;
+
+            const calcGrip = () => {
+                if(!weight || !gripRaw || !age) return;
+                const ratio = parseFloat(gripRaw) / parseFloat(weight);
+                setGripScore(ratio.toFixed(2));
+                setGripRes(getAssessmentResult('grip', ratio, age, gender));
+            };
+
+            const chairRes = getAssessmentResult('chair', chairRaw, age, gender);
+            const kneeRes = getAssessmentResult('knee', kneeRaw, age, gender);
+
+            return (
+                <div className="pb-12 px-5 pt-8 no-print bg-gray-50 min-h-screen animate-fade-in">
+                    <button onClick={onBack} className="mb-6 inline-flex items-center gap-1 px-3 py-1.5 bg-white text-gray-700 rounded-full text-sm font-medium active:scale-95 transition-transform shadow-sm border border-gray-100">
+                        {renderIcon("arrow-left", 16)} กลับหน้าหลัก
+                    </button>
+                    <div className="mb-6">
+                        <h1 className="text-2xl font-extrabold text-gray-800">ประเมินสมรรถภาพ</h1>
+                        <p className="text-gray-500 text-sm">คำนวณอัตโนมัติตามเกณฑ์เอกสาร</p>
+                    </div>
+
+                    <div className="bg-white p-5 rounded-[24px] shadow-sm border border-gray-100 mb-6 relative overflow-hidden">
+                        <h3 className="font-bold text-gray-700 mb-4 flex items-center gap-2">
+                            {renderIcon("user", 20, "#3b82f6")} ข้อมูลเบื้องต้น
+                        </h3>
+                        <div className="grid grid-cols-2 gap-4 mb-4">
+                            <div>
+                                <label className="block text-xs font-medium text-gray-500 mb-1">เพศ</label>
+                                <select value={gender} onChange={e => setGender(e.target.value)} className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-gray-700 outline-none focus:ring-2 focus:ring-blue-400 font-medium">
+                                    <option value="M">ชาย</option>
+                                    <option value="F">หญิง</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label className="block text-xs font-medium text-gray-500 mb-1">อายุ (ปี)</label>
+                                <input type="number" value={age} onChange={e => setAge(e.target.value)} placeholder="เช่น 24" className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-gray-700 outline-none focus:ring-2 focus:ring-blue-400 font-medium" />
+                            </div>
+                        </div>
+                        <div className="bg-blue-50/50 p-3 rounded-xl border border-blue-100">
+                            <label className="block text-xs font-medium text-blue-800 mb-1 flex items-center gap-1">
+                                {renderIcon("scale", 14)} น้ำหนัก (กก.) <span className="text-red-500 text-[10px]">*ใช้คำนวณแรงบีบมือ</span>
+                            </label>
+                            <input type="number" value={weight} onChange={e => setWeight(e.target.value)} placeholder="เช่น 65" className="w-full bg-white border border-blue-200 rounded-lg p-2.5 text-gray-700 outline-none font-medium" />
+                        </div>
+                    </div>
+
+                    {!age && (
+                        <div className="text-center p-6 bg-blue-50 text-blue-600 rounded-[24px] border border-blue-100 text-sm font-medium">
+                            กรุณากรอกอายุเพื่อเริ่มการประเมิน<br/>ระบบจะคัดกรองแบบทดสอบที่เหมาะกับคุณ
+                        </div>
+                    )}
+                    
+                    {age && !isValidAge && (
+                        <div className="text-center p-6 bg-red-50 text-red-600 rounded-[24px] border border-red-100 text-sm font-medium">
+                            ขออภัย ไม่มีเกณฑ์มาตรฐาน<br/>สำหรับอายุ {age} ปี ในเอกสารอ้างอิง
+                        </div>
+                    )}
+
+                    {isValidAge && (
+                        <div className="space-y-4">
+                            {/* Grip Strength */}
+                            {showGrip && (
+                                <div className="bg-white p-5 rounded-[24px] shadow-sm border border-gray-100 relative">
+                                    <h3 className="font-bold text-gray-800 text-lg mb-1">แรงบีบมือ</h3>
+                                    <div className="text-xs text-gray-500 mb-3 bg-gray-50 p-2 rounded-lg border border-gray-200">
+                                        ระเบียบเอกสาร: บันทึกค่าที่ได้ หารด้วยน้ำหนักตัว
+                                    </div>
+                                    <div className="flex gap-2">
+                                        <input type="number" value={gripRaw} onChange={e => setGripRaw(e.target.value)} placeholder="บีบได้กี่ กก." className="flex-1 bg-gray-50 border border-gray-200 rounded-xl p-3 text-gray-700 outline-none focus:ring-2 focus:ring-blue-400 font-medium" />
+                                        <button onClick={calcGrip} className="bg-blue-600 text-white px-4 py-2 rounded-xl font-medium shadow-md active:scale-95 text-sm">แปรผล</button>
+                                    </div>
+                                    {gripRes && (
+                                        <div className="mt-3 bg-blue-50 rounded-xl p-4 flex justify-between items-center border border-blue-100">
+                                            <div>
+                                                <div className="text-[11px] font-bold text-blue-600">คะแนนหารน้ำหนัก</div>
+                                                <div className="font-extrabold text-gray-800 text-lg">{gripScore}</div>
+                                            </div>
+                                            <div className={`${getBadgeColor(gripRes)} text-white px-4 py-1.5 rounded-full text-sm font-bold`}>{gripRes}</div>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
+                            {/* Chair Stand */}
+                            {showChair && (
+                                <div className="bg-white p-5 rounded-[24px] shadow-sm border border-gray-100">
+                                    <h3 className="font-bold text-gray-800 text-lg mb-1">ยืน-นั่ง บนเก้าอี้</h3>
+                                    <div className="text-xs text-gray-500 mb-3 bg-gray-50 p-2 rounded-lg border border-gray-200">
+                                        จับเวลา: <span className="font-bold text-emerald-600 text-sm">{numAge >= 60 ? '30 วินาที' : '60 วินาที'}</span>
+                                    </div>
+                                    <input type="number" value={chairRaw} onChange={e => setChairRaw(e.target.value)} placeholder="จำนวนครั้งที่ทำได้" className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-gray-700 outline-none focus:ring-2 focus:ring-emerald-400 font-medium" />
+                                    {chairRes && chairRaw && (
+                                        <div className="mt-3 bg-emerald-50 rounded-xl p-4 flex justify-between items-center border border-emerald-100">
+                                            <div className="text-[11px] font-bold text-emerald-700">ผลประเมิน</div>
+                                            <div className={`${getBadgeColor(chairRes)} text-white px-4 py-1.5 rounded-full text-sm font-bold`}>{chairRes}</div>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
+                            {/* Knee Lift */}
+                            {showKnee && (
+                                <div className="bg-white p-5 rounded-[24px] shadow-sm border border-gray-100">
+                                    <h3 className="font-bold text-gray-800 text-lg mb-1">ยืนยกเข่าขึ้นลง</h3>
+                                    <div className="text-xs text-gray-500 mb-3 bg-gray-50 p-2 rounded-lg border border-gray-200">
+                                        จับเวลา: <span className="font-bold text-pink-600 text-sm">{numAge >= 60 ? '2 นาที' : '3 นาที'}</span>
+                                    </div>
+                                    <input type="number" value={kneeRaw} onChange={e => setKneeRaw(e.target.value)} placeholder="จำนวนครั้งที่ทำได้" className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-gray-700 outline-none focus:ring-2 focus:ring-pink-400 font-medium" />
+                                    {kneeRes && kneeRaw && (
+                                        <div className="mt-3 bg-pink-50 rounded-xl p-4 flex justify-between items-center border border-pink-100">
+                                            <div className="text-[11px] font-bold text-pink-700">ผลประเมิน</div>
+                                            <div className={`${getBadgeColor(kneeRes)} text-white px-4 py-1.5 rounded-full text-sm font-bold`}>{kneeRes}</div>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        const App = () => {
+            const [activeMenu, setActiveMenu] = useState('main'); // หน้าเริ่มต้น
+
+            return (
+                <div className="max-w-md mx-auto relative min-h-screen bg-[#f0f9ff] shadow-2xl overflow-x-hidden">
+                    <div className="h-full">
+                        {activeMenu === 'main' && (
+                            <div className="pb-12 px-5 pt-12 no-print min-h-screen bg-gradient-to-b from-[#f0f9ff] to-[#e0f2fe] animate-fade-in flex flex-col items-center">
+                                <div className="mb-10 text-center w-full">
+                                    <div className="bg-white/80 w-16 h-16 rounded-full mx-auto flex items-center justify-center mb-4 shadow-sm backdrop-blur-md">
+                                        {renderIcon("activity", 32, "#0284c7")}
+                                    </div>
+                                    <h1 className="text-3xl font-extrabold text-gray-800 mb-2">Lifestyle Medicine</h1>
+                                    <p className="text-gray-500 text-sm font-medium">ออกแบบสุขภาพดีด้วยตัวคุณเอง</p>
+                                </div>
+                                
+                                <div className="grid grid-cols-2 gap-4 w-full px-2">
+                                    {/* 1. FITT */}
+                                    <div onClick={() => setActiveMenu('fitt')} className="superps-card bg-gradient-to-br from-[#e0f2fe] to-[#bae6fd] rounded-[24px] p-5 cursor-pointer shadow-sm aspect-[4/3] flex flex-col justify-center items-center text-center">
+                                        <div className="card-content">
+                                            <div className="bg-white/70 w-12 h-12 rounded-2xl flex items-center justify-center mb-3 mx-auto shadow-sm backdrop-blur-md">
+                                                {renderIcon("layout-grid", 24, "#0369a1")}
+                                            </div>
+                                            <h3 className="font-bold text-gray-800 text-[15px] leading-tight">FITT<br/>คืออะไร</h3>
+                                        </div>
+                                    </div>
+                                    
+                                    {/* 2. Age */}
+                                    <div onClick={() => setActiveMenu('age')} className="superps-card bg-gradient-to-br from-[#f3e8ff] to-[#e9d5ff] rounded-[24px] p-5 cursor-pointer shadow-sm aspect-[4/3] flex flex-col justify-center items-center text-center">
+                                        <div className="card-content">
+                                            <div className="bg-white/70 w-12 h-12 rounded-2xl flex items-center justify-center mb-3 mx-auto shadow-sm backdrop-blur-md">
+                                                {renderIcon("users", 24, "#7e22ce")}
+                                            </div>
+                                            <h3 className="font-bold text-gray-800 text-[15px] leading-tight">ออกกำลังกาย<br/>ตามวัย</h3>
+                                        </div>
+                                    </div>
+                                    
+                                    {/* 3. Table */}
+                                    <div onClick={() => setActiveMenu('table')} className="superps-card bg-gradient-to-br from-[#fef3c7] to-[#fde68a] rounded-[24px] p-5 cursor-pointer shadow-sm aspect-[4/3] flex flex-col justify-center items-center text-center">
+                                        <div className="card-content">
+                                            <div className="bg-white/70 w-12 h-12 rounded-2xl flex items-center justify-center mb-3 mx-auto shadow-sm backdrop-blur-md">
+                                                {renderIcon("calendar-days", 24, "#b45309")}
+                                            </div>
+                                            <h3 className="font-bold text-gray-800 text-[15px] leading-tight">ตาราง<br/>ออกกำลังกาย</h3>
+                                        </div>
+                                    </div>
+                                    
+                                    {/* 4. Assessment */}
+                                    <div onClick={() => setActiveMenu('assessment')} className="superps-card bg-gradient-to-br from-[#dcfce7] to-[#bbf7d0] rounded-[24px] p-5 cursor-pointer shadow-sm aspect-[4/3] flex flex-col justify-center items-center text-center">
+                                        <div className="card-content">
+                                            <div className="bg-white/70 w-12 h-12 rounded-2xl flex items-center justify-center mb-3 mx-auto shadow-sm backdrop-blur-md">
+                                                {renderIcon("clipboard-check", 24, "#15803d")}
+                                            </div>
+                                            <h3 className="font-bold text-gray-800 text-[15px] leading-tight">ประเมิน<br/>สมรรถภาพ</h3>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                        
+                        {/* หน้าเนื้อหาย่อยต่างๆ */}
+                        {activeMenu === 'fitt' && <FittContent onBack={() => setActiveMenu('main')} />}
+                        {activeMenu === 'age' && <AgeContent onBack={() => setActiveMenu('main')} />}
+                        {activeMenu === 'table' && <TableContent onBack={() => setActiveMenu('main')} />}
+                        {activeMenu === 'assessment' && <AssessmentContent onBack={() => setActiveMenu('main')} />}
+                    </div>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
