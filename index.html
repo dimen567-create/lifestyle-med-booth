@@ -47,10 +47,24 @@
 
         /* Print Styles */
         @media print {
-            body { background: white !important; }
+            body, html { 
+                background: white !important; 
+                margin: 0 !important; 
+                padding: 0 !important; 
+                min-height: auto !important;
+            }
             .no-print { display: none !important; }
-            .print-only { display: block !important; width: 100%; margin: 0; padding: 0; }
-            @page { size: A4 landscape; margin: 10mm; }
+            #root { min-height: 0 !important; }
+            @page { 
+                size: A4 landscape; 
+                margin: 8mm; 
+            }
+            /* บังคับให้ปริ้นสีพื้นหลังตารางออกมาด้วย */
+            * {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+            ::-webkit-scrollbar { display: none !important; }
         }
     </style>
 </head>
@@ -62,12 +76,14 @@
 
         const LucideIcon = ({ name, size = 24, color = "currentColor" }) => {
             const spanRef = useRef(null);
+            
             useEffect(() => {
                 if (spanRef.current && window.lucide) {
                     spanRef.current.innerHTML = `<i data-lucide="${name}" style="width:${size}px; height:${size}px; color:${color};"></i>`;
                     window.lucide.createIcons();
                 }
             }, [name, size, color]);
+            
             return <span ref={spanRef} className="inline-flex items-center justify-center" style={{ width: size, height: size }}></span>;
         };
 
@@ -75,6 +91,7 @@
             return <LucideIcon name={name} size={size} color={color} />;
         };
 
+        // --- Database for Assessments ---
         const gripM = [[24,0.50,0.60,0.69,0.79],[29,0.51,0.61,0.70,0.80],[34,0.52,0.61,0.70,0.79],[39,0.50,0.59,0.68,0.77],[44,0.41,0.51,0.62,0.72],[49,0.36,0.49,0.60,0.71],[54,0.35,0.47,0.58,0.68],[59,0.34,0.46,0.57,0.68]];
         const gripF = [[24,0.40,0.48,0.55,0.63],[29,0.40,0.49,0.58,0.67],[34,0.42,0.52,0.62,0.68],[39,0.37,0.45,0.54,0.62],[44,0.36,0.44,0.53,0.61],[49,0.35,0.43,0.52,0.60],[54,0.32,0.39,0.46,0.53],[59,0.30,0.38,0.45,0.51]];
         const chair60M = [[24,31,38,45,53],[29,30,38,46,52],[34,25,33,42,51],[39,24,33,41,49],[44,24,32,40,47],[49,22,29,37,45],[54,19,27,35,42],[59,18,25,33,40]];
@@ -401,7 +418,7 @@
                                 </div>
                                 <ul className="text-[14px] text-gray-600 space-y-2">
                                     <li><strong>เป้าหมาย:</strong> ป้องกันการหกล้ม (Fall Prevention)</li>
-                                    <li><strong>รูปแบบ:</strong> ฝึกการทรงตัว (Balance) และแรงต้านเบาๆ</li>
+                                    <li><strong>รูปแบบ:</strong> ฝึกการทรงตัว (Balance) เช่น รำไทเก็ก และแรงต้านเบาๆ (ยางยืด)</li>
                                     <li><strong>ความหนัก:</strong> ระดับเบา-ปานกลาง (Talk test: ร้องเพลงไม่ได้แต่พูดได้)</li>
                                 </ul>
                             </div>
@@ -414,7 +431,7 @@
         const TableContent = ({ onBack }) => {
             const days = ['จันทร์', 'อังคาร', 'พุธ', 'พฤหัสบดี', 'ศุกร์', 'เสาร์', 'อาทิตย์'];
             return (
-                <div className="bg-[#faf9f6] min-h-screen flex flex-col animate-fade-in">
+                <div className="bg-[#faf9f6] min-h-screen print:min-h-0 print:bg-white flex flex-col animate-fade-in">
                     <div className="p-5 no-print border-b border-gray-200 bg-white shadow-sm flex justify-between items-center sticky top-0 z-10">
                         <div className="flex items-center gap-3">
                             <button onClick={onBack} className="p-2 bg-gray-100 text-gray-700 rounded-full active:scale-95 transition-transform shadow-sm border border-gray-200">
@@ -430,17 +447,19 @@
                         </button>
                     </div>
 
-                    <div className="print-only p-4 md:p-8 w-full max-w-5xl mx-auto overflow-x-auto">
-                        <div className="min-w-[800px]">
-                            <div className="flex justify-between items-end border-b-2 border-[#8c7362] pb-4 mb-6">
+                    {/* ใช้ print: ล้างค่ากรอบมือถือออกตอนปริ้น */}
+                    <div className="p-4 md:p-8 w-full max-w-5xl mx-auto overflow-x-auto print:overflow-visible print:max-w-none print:p-0 print:m-0">
+                        <div className="min-w-[800px] print:min-w-0 print:w-full">
+                            <div className="flex justify-between items-end border-b-2 border-[#8c7362] pb-4 mb-6 print:mb-3">
                                 <h1 className="text-3xl font-bold text-[#5c4a3d]">ตารางการออกกำลังกายส่วนบุคคล</h1>
                                 <div className="text-xl text-[#5c4a3d] font-medium">เดือน : ..............................................</div>
                             </div>
-                            <table className="w-full border-collapse bg-white shadow-sm">
+                            {/* บังคับช่องตารางให้กว้างเท่ากัน (table-fixed) */}
+                            <table className="w-full border-collapse bg-white shadow-sm print:shadow-none table-fixed">
                                 <thead>
                                     <tr>
                                         {days.map((day, i) => (
-                                            <th key={day} className={`p-3 text-center border border-[#e6ddd6] bg-[#f8f5f1] ${i >= 5 ? 'text-[#c27a7a]' : 'text-[#8c7362]'} font-semibold text-lg`}>
+                                            <th key={day} className={`p-3 text-center border border-[#e6ddd6] bg-[#f8f5f1] ${i >= 5 ? 'text-[#c27a7a]' : 'text-[#8c7362]'} font-semibold text-lg w-[14.28%]`}>
                                                 วัน{day}
                                             </th>
                                         ))}
@@ -450,7 +469,7 @@
                                     {[1, 2, 3, 4, 5].map((row) => (
                                         <tr key={row}>
                                             {[1, 2, 3, 4, 5, 6, 7].map((col) => (
-                                                <td key={col} className="p-2 border border-[#e6ddd6] h-[100px] align-top relative w-[14.28%]">
+                                                <td key={col} className="p-2 border border-[#e6ddd6] h-[100px] print:h-[85px] align-top relative">
                                                     <div className="w-6 h-6 rounded bg-[#f0eadd]"></div>
                                                 </td>
                                             ))}
@@ -458,7 +477,7 @@
                                     ))}
                                 </tbody>
                             </table>
-                            <div className="mt-8 flex gap-12 text-xl text-[#5c4a3d] font-medium">
+                            <div className="mt-8 print:mt-4 flex gap-12 text-xl text-[#5c4a3d] font-medium">
                                 <div>ชื่อ : .....................................................................</div>
                                 <div>อายุ : ...................... ปี</div>
                             </div>
@@ -618,6 +637,7 @@
             return (
                 <div className="max-w-md mx-auto relative min-h-screen bg-[#f0f9ff] shadow-2xl overflow-x-hidden">
                     <div className="h-full">
+                        {/* Main Menu UI - สไตล์คล้ายแอป SuperPS */}
                         {activeMenu === 'main' && (
                             <div className="pb-12 px-5 pt-12 no-print min-h-screen bg-gradient-to-b from-[#f0f9ff] to-[#e0f2fe] animate-fade-in flex flex-col items-center">
                                 <div className="mb-10 text-center w-full">
