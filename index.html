@@ -9,6 +9,8 @@
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- เพิ่ม Library html2canvas สำหรับเซฟรูป -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
     <style>
@@ -45,7 +47,7 @@
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
 
-        /* Print Styles */
+        /* Print Styles - แก้ไขให้ขยายเต็มแผ่น */
         @media print {
             body, html { 
                 background: white !important; 
@@ -53,13 +55,14 @@
                 padding: 0 !important; 
                 min-height: auto !important;
             }
+            /* ล้างค่า max-width ของคอนเทนเนอร์หลักเพื่อให้ขยายเต็มหน้ากระดาษ */
+            .print-full-width { max-width: none !important; margin: 0 !important; padding: 0 !important; }
             .no-print { display: none !important; }
             #root { min-height: 0 !important; }
             @page { 
                 size: A4 landscape; 
                 margin: 8mm; 
             }
-            /* บังคับให้ปริ้นสีพื้นหลังตารางออกมาด้วย */
             * {
                 -webkit-print-color-adjust: exact !important;
                 print-color-adjust: exact !important;
@@ -430,9 +433,36 @@
 
         const TableContent = ({ onBack }) => {
             const days = ['จันทร์', 'อังคาร', 'พุธ', 'พฤหัสบดี', 'ศุกร์', 'เสาร์', 'อาทิตย์'];
+            
+            // 1. สร้างตัวแปรอ้างอิงถึงกรอบตารางที่จะแคปรูป
+            const tableRef = useRef(null);
+
+            // 2. ฟังก์ชันดาวน์โหลดรูปภาพ
+            const handleDownloadImage = () => {
+                if (!tableRef.current) return;
+                
+                // ใช้ html2canvas เพื่อวาด HTML ออกมาเป็นรูป
+                window.html2canvas(tableRef.current, {
+                    scale: 2, // เพิ่มความละเอียดสองเท่าให้ภาพคมชัด
+                    backgroundColor: '#ffffff', // บังคับพื้นหลังสีขาว
+                    useCORS: true
+                }).then(canvas => {
+                    const imageURL = canvas.toDataURL("image/png");
+                    const downloadLink = document.createElement('a');
+                    downloadLink.href = imageURL;
+                    downloadLink.download = 'Exercise_Plan_1Month.png'; // ชื่อไฟล์ที่จะเซฟ
+                    document.body.appendChild(downloadLink);
+                    downloadLink.click();
+                    document.body.removeChild(downloadLink);
+                }).catch(err => {
+                    console.error("Error capturing image: ", err);
+                    alert("เกิดข้อผิดพลาดในการบันทึกรูปภาพ");
+                });
+            };
+
             return (
-                <div className="bg-[#faf9f6] min-h-screen print:min-h-0 print:bg-white flex flex-col animate-fade-in print:block">
-                    <div className="p-5 no-print border-b border-gray-200 bg-white shadow-sm flex justify-between items-center sticky top-0 z-10">
+                <div className="bg-[#faf9f6] min-h-screen print:min-h-0 print:bg-white flex flex-col animate-fade-in">
+                    <div className="p-5 no-print border-b border-gray-200 bg-white shadow-sm flex justify-between items-center sticky top-0 z-10 flex-wrap gap-3">
                         <div className="flex items-center gap-3">
                             <button onClick={onBack} className="p-2 bg-gray-100 text-gray-700 rounded-full active:scale-95 transition-transform shadow-sm border border-gray-200">
                                 {renderIcon("arrow-left", 18)}
@@ -442,24 +472,30 @@
                                 <p className="text-xs text-gray-500">พิมพ์ใส่กระดาษ A4</p>
                             </div>
                         </div>
-                        <button onClick={() => window.print()} className="bg-[#8c7362] text-white px-4 py-2 rounded-xl text-sm font-medium shadow-md active:scale-95 flex items-center gap-2">
-                            {renderIcon("printer", 18)} ปริ้น PDF
-                        </button>
+                        
+                        {/* 3. เพิ่มปุ่ม เซฟรูปภาพ ข้างปุ่มปริ้น */}
+                        <div className="flex gap-2">
+                            <button onClick={handleDownloadImage} className="bg-blue-600 text-white px-3 py-2 rounded-xl text-sm font-medium shadow-md active:scale-95 flex items-center gap-1.5">
+                                {renderIcon("image-down", 16)} เซฟรูป
+                            </button>
+                            <button onClick={() => window.print()} className="bg-[#8c7362] text-white px-3 py-2 rounded-xl text-sm font-medium shadow-md active:scale-95 flex items-center gap-1.5">
+                                {renderIcon("printer", 16)} ปริ้น PDF
+                            </button>
+                        </div>
                     </div>
 
-                    {/* ใช้ print: ล้างค่ากรอบมือถือออกตอนปริ้น */}
                     <div className="p-4 md:p-8 w-full max-w-5xl mx-auto overflow-x-auto print:overflow-visible print:max-w-none print:p-0 print:m-0">
-                        <div className="min-w-[800px] print:min-w-0 print:w-full">
+                        {/* 4. นำ tableRef มาแปะไว้ที่ขอบเขตของพื้นที่ที่ต้องการให้กลายเป็นรูปภาพ */}
+                        <div ref={tableRef} className="min-w-[800px] print:min-w-0 print:w-full bg-[#faf9f6] p-4 print:p-0 rounded-xl">
                             <div className="flex justify-between items-end border-b-2 border-[#8c7362] pb-4 mb-6 print:mb-3">
                                 <h1 className="text-3xl font-bold text-[#5c4a3d]">ตารางการออกกำลังกายส่วนบุคคล</h1>
                                 <div className="text-xl text-[#5c4a3d] font-medium">เดือน : ..............................................</div>
                             </div>
-                            {/* บังคับช่องตารางให้กว้างเท่ากัน (table-fixed) */}
                             <table className="w-full border-collapse bg-white shadow-sm print:shadow-none table-fixed">
                                 <thead>
                                     <tr>
                                         {days.map((day, i) => (
-                                            <th key={day} className={`p-3 text-center border border-[#e6ddd6] bg-[#f8f5f1] ${i >= 5 ? 'text-[#c27a7a]' : 'text-[#8c7362]'} font-semibold text-lg w-[14.28%]`}>
+                                            <th key={day} className={`p-3 text-center border border-[#e6ddd6] bg-[#f8f5f1] ${i >= 5 ? 'text-[#c27a7a]' : 'text-[#8c7362]'} font-semibold text-lg print:text-xl w-[14.28%]`}>
                                                 วัน{day}
                                             </th>
                                         ))}
@@ -469,7 +505,7 @@
                                     {[1, 2, 3, 4, 5].map((row) => (
                                         <tr key={row}>
                                             {[1, 2, 3, 4, 5, 6, 7].map((col) => (
-                                                <td key={col} className="p-2 border border-[#e6ddd6] h-[100px] print:h-[85px] align-top relative">
+                                                <td key={col} className="p-2 border border-[#e6ddd6] h-[100px] print:h-[110px] align-top relative">
                                                     <div className="w-6 h-6 rounded bg-[#f0eadd]"></div>
                                                 </td>
                                             ))}
@@ -477,7 +513,7 @@
                                     ))}
                                 </tbody>
                             </table>
-                            <div className="mt-8 print:mt-4 flex gap-12 text-xl text-[#5c4a3d] font-medium">
+                            <div className="mt-8 print:mt-6 flex gap-12 text-xl print:text-2xl text-[#5c4a3d] font-medium">
                                 <div>ชื่อ : .....................................................................</div>
                                 <div>อายุ : ...................... ปี</div>
                             </div>
@@ -632,12 +668,12 @@
         };
 
         const App = () => {
-            const [activeMenu, setActiveMenu] = useState('main'); // หน้าเริ่มต้น
+            const [activeMenu, setActiveMenu] = useState('main');
 
             return (
-                <div className="max-w-md mx-auto relative min-h-screen bg-[#f0f9ff] shadow-2xl overflow-x-hidden print:max-w-none print:w-full print:shadow-none print:bg-white print:overflow-visible print:mx-0">
-                    <div className="h-full print:h-auto print:w-full">
-                        {/* Main Menu UI - สไตล์คล้ายแอป SuperPS */}
+                <div className="print-full-width max-w-md mx-auto relative min-h-screen bg-[#f0f9ff] shadow-2xl overflow-x-hidden">
+                    <div className="h-full">
+                        {/* Main Menu UI */}
                         {activeMenu === 'main' && (
                             <div className="pb-12 px-5 pt-12 no-print min-h-screen bg-gradient-to-b from-[#f0f9ff] to-[#e0f2fe] animate-fade-in flex flex-col items-center">
                                 <div className="mb-10 text-center w-full">
@@ -649,7 +685,6 @@
                                 </div>
                                 
                                 <div className="grid grid-cols-2 gap-4 w-full px-2">
-                                    {/* 1. FITT */}
                                     <div onClick={() => setActiveMenu('fitt')} className="superps-card bg-gradient-to-br from-[#e0f2fe] to-[#bae6fd] rounded-[24px] p-5 cursor-pointer shadow-sm aspect-[4/3] flex flex-col justify-center items-center text-center">
                                         <div className="card-content">
                                             <div className="bg-white/70 w-12 h-12 rounded-2xl flex items-center justify-center mb-3 mx-auto shadow-sm backdrop-blur-md">
@@ -659,7 +694,6 @@
                                         </div>
                                     </div>
                                     
-                                    {/* 2. Age */}
                                     <div onClick={() => setActiveMenu('age')} className="superps-card bg-gradient-to-br from-[#f3e8ff] to-[#e9d5ff] rounded-[24px] p-5 cursor-pointer shadow-sm aspect-[4/3] flex flex-col justify-center items-center text-center">
                                         <div className="card-content">
                                             <div className="bg-white/70 w-12 h-12 rounded-2xl flex items-center justify-center mb-3 mx-auto shadow-sm backdrop-blur-md">
@@ -669,7 +703,6 @@
                                         </div>
                                     </div>
                                     
-                                    {/* 3. Table */}
                                     <div onClick={() => setActiveMenu('table')} className="superps-card bg-gradient-to-br from-[#fef3c7] to-[#fde68a] rounded-[24px] p-5 cursor-pointer shadow-sm aspect-[4/3] flex flex-col justify-center items-center text-center">
                                         <div className="card-content">
                                             <div className="bg-white/70 w-12 h-12 rounded-2xl flex items-center justify-center mb-3 mx-auto shadow-sm backdrop-blur-md">
@@ -679,7 +712,6 @@
                                         </div>
                                     </div>
                                     
-                                    {/* 4. Assessment */}
                                     <div onClick={() => setActiveMenu('assessment')} className="superps-card bg-gradient-to-br from-[#dcfce7] to-[#bbf7d0] rounded-[24px] p-5 cursor-pointer shadow-sm aspect-[4/3] flex flex-col justify-center items-center text-center">
                                         <div className="card-content">
                                             <div className="bg-white/70 w-12 h-12 rounded-2xl flex items-center justify-center mb-3 mx-auto shadow-sm backdrop-blur-md">
@@ -692,7 +724,6 @@
                             </div>
                         )}
                         
-                        {/* หน้าเนื้อหาย่อยต่างๆ */}
                         {activeMenu === 'fitt' && <FittContent onBack={() => setActiveMenu('main')} />}
                         {activeMenu === 'age' && <AgeContent onBack={() => setActiveMenu('main')} />}
                         {activeMenu === 'table' && <TableContent onBack={() => setActiveMenu('main')} />}
