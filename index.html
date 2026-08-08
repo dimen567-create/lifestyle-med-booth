@@ -21,7 +21,6 @@
             -webkit-tap-highlight-color: transparent;
         }
         
-        /* SuperPS Card Design */
         .superps-card {
             background: rgba(255, 255, 255, 0.7);
             backdrop-filter: blur(20px);
@@ -46,7 +45,7 @@
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
 
-        /* Print Styles */
+        /* Print Styles - แก้ไขลดขอบและป้องกันการแตกหน้า */
         @media print {
             body, html { 
                 background: white !important; 
@@ -57,9 +56,16 @@
             .print-full-width { max-width: none !important; margin: 0 !important; padding: 0 !important; }
             .no-print { display: none !important; }
             #root { min-height: 0 !important; }
-            @page { size: A4 landscape; margin: 8mm; }
+            
+            /* ลดระยะขอบกระดาษลงเพื่อให้มีพื้นที่ตารางมากขึ้นในมือถือ */
+            @page { size: A4 landscape; margin: 5mm; }
+            
             * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
             ::-webkit-scrollbar { display: none !important; }
+            
+            /* บังคับไม่ให้ตารางฉีกขาดไปหน้า 2 */
+            table { page-break-inside: avoid; }
+            tr { page-break-inside: avoid; page-break-after: auto; }
         }
     </style>
 </head>
@@ -84,7 +90,6 @@
             return <LucideIcon name={name} size={size} color={color} />;
         };
 
-        // --- Database for Assessments ---
         const gripM = [[24,0.50,0.60,0.69,0.79],[29,0.51,0.61,0.70,0.80],[34,0.52,0.61,0.70,0.79],[39,0.50,0.59,0.68,0.77],[44,0.41,0.51,0.62,0.72],[49,0.36,0.49,0.60,0.71],[54,0.35,0.47,0.58,0.68],[59,0.34,0.46,0.57,0.68]];
         const gripF = [[24,0.40,0.48,0.55,0.63],[29,0.40,0.49,0.58,0.67],[34,0.42,0.52,0.62,0.68],[39,0.37,0.45,0.54,0.62],[44,0.36,0.44,0.53,0.61],[49,0.35,0.43,0.52,0.60],[54,0.32,0.39,0.46,0.53],[59,0.30,0.38,0.45,0.51]];
         const chair60M = [[24,31,38,45,53],[29,30,38,46,52],[34,25,33,42,51],[39,24,33,41,49],[44,24,32,40,47],[49,22,29,37,45],[54,19,27,35,42],[59,18,25,33,40]];
@@ -96,7 +101,6 @@
         const knee2M = [[64,71,91,111,131],[69,70,89,109,128]];
         const knee2F = [[64,64,86,107,129],[69,57,79,101,123]];
 
-        // Labels สำหรับตารางอ้างอิง
         const gripLabels = ["19-24", "25-29", "30-34", "35-39", "40-44", "45-49", "50-54", "55-59"];
         const chair60Labels = ["19-24", "25-29", "30-34", "35-39", "40-44", "45-49", "50-54", "55-59"];
         const chair30Labels = ["60-64", "65-69"];
@@ -115,7 +119,6 @@
             if (!val || !age) return null;
             let numAge = parseInt(age);
             let tableM, tableF;
-            
             if (type === 'grip') { tableM = gripM; tableF = gripF; } 
             else if (type === 'chair') {
                 if (numAge < 60) { tableM = chair60M; tableF = chair60F; }
@@ -125,11 +128,9 @@
                 if (numAge < 60) { tableM = knee3M; tableF = knee3F; }
                 else { tableM = knee2M; tableF = knee2F; }
             }
-            
             let table = gender === 'M' ? tableM : tableF;
             let row = table.find(r => numAge <= r[0]);
             if (!row) row = table[table.length - 1];
-            
             return evalScore(parseFloat(val), [row[1], row[2], row[3], row[4]]);
         };
 
@@ -142,7 +143,6 @@
             return 'bg-gray-400';
         };
 
-        // --- คอมโพเนนต์สำหรับแสดงตารางอ้างอิง ---
         const ReferenceTable = ({ title, data, labels, isDecimal, activeAgeIndex }) => {
             const step = isDecimal ? 0.01 : 1;
             const fix = (num) => isDecimal ? parseFloat(num).toFixed(2) : parseInt(num);
@@ -187,7 +187,6 @@
 
         const FittContent = ({ onBack }) => {
             const [activeDetail, setActiveDetail] = useState(null);
-            // ... (เนื้อหา FITT เหมือนเดิม ขอละไว้เพื่อความกระชับในคำอธิบาย แต่ในโค้ดใส่เต็ม)
             if (activeDetail === 'F') return ( <div className="bg-white min-h-screen no-print pb-12 animate-fade-in"><div className="relative h-64"><img src="https://images.unsplash.com/photo-1512314889357-e157c22f938d?w=800&auto=format&fit=crop" className="w-full h-full object-cover" alt="Calendar" /><button onClick={() => setActiveDetail(null)} className="absolute top-4 left-4 bg-white/90 p-2.5 rounded-full shadow-lg backdrop-blur-sm active:scale-95 text-gray-800">{renderIcon("chevron-left", 24)}</button></div><div className="p-6 -mt-10 relative bg-white rounded-t-3xl shadow-[0_-10px_15px_-3px_rgba(0,0,0,0.1)]"><div className="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-100 text-blue-700 font-bold rounded-full text-sm mb-4">{renderIcon("calendar-days", 16)} F - Frequency</div><h2 className="text-2xl font-extrabold text-gray-800 mb-4">ความถี่ (กี่วันต่อสัปดาห์?)</h2><div className="space-y-4 text-gray-600 leading-relaxed text-[15px]"><p>การจัดความถี่ของการออกกำลังกายมีความสำคัญต่อ <strong>"การฟื้นฟูของกล้ามเนื้อ"</strong> (Muscle Recovery) และระบบหัวใจ โดยทั่วไปแนะนำให้ออกกำลังกาย 3-5 วันต่อสัปดาห์</p><div className="bg-blue-50/50 p-5 rounded-2xl border border-blue-100"><ul className="space-y-4 text-[14px]"><li className="flex gap-3"><div className="mt-1 text-blue-500">{renderIcon("activity", 18)}</div><div><strong>Cardio (คาร์ดิโอ):</strong> 3-5 วัน/สัปดาห์ หรือทำต่อเนื่องวันละ 30 นาทีเพื่อหัวใจที่แข็งแรง</div></li><li className="flex gap-3"><div className="mt-1 text-blue-500">{renderIcon("dumbbell", 18)}</div><div><strong>Strength (เวทเทรนนิ่ง):</strong> 2-3 วัน/สัปดาห์ <span className="text-red-500 font-medium">*ควรพักกล้ามเนื้อมัดที่ใช้งานอย่างน้อย 48 ชั่วโมง</span> เพื่อให้เกิดการซ่อมแซม</div></li></ul></div></div></div></div> );
             if (activeDetail === 'I') return ( <div className="bg-white min-h-screen no-print pb-12 animate-fade-in"><div className="relative h-64"><img src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=800&auto=format&fit=crop" className="w-full h-full object-cover" alt="Intensity" /><button onClick={() => setActiveDetail(null)} className="absolute top-4 left-4 bg-white/90 p-2.5 rounded-full shadow-lg backdrop-blur-sm active:scale-95 text-gray-800">{renderIcon("chevron-left", 24)}</button></div><div className="p-6 -mt-10 relative bg-white rounded-t-3xl shadow-[0_-10px_15px_-3px_rgba(0,0,0,0.1)]"><div className="inline-flex items-center gap-2 px-3 py-1.5 bg-purple-100 text-purple-700 font-bold rounded-full text-sm mb-4">{renderIcon("flame", 16)} I - Intensity</div><h2 className="text-2xl font-extrabold text-gray-800 mb-4">ความหนัก (เหนื่อยแค่ไหน?)</h2><div className="space-y-4"><div className="bg-gray-50 p-4 rounded-2xl border border-gray-200"><h3 className="font-bold text-gray-800 mb-3 text-[15px] flex items-center gap-2">{renderIcon("mic", 18, "#9333ea")} 1. Talk Test (ประเมินจากการพูด)</h3><ul className="space-y-3 text-[14px] text-gray-600"><li>🟢 <strong>เบา:</strong> ร้องเพลงได้จบเพลงสบายๆ</li><li>🟡 <strong>ปานกลาง:</strong> พูดเป็นประโยคได้ แต่ร้องเพลงไม่ได้ <span className="text-purple-600 text-xs">(แนะนำที่สุด)</span></li><li>🔴 <strong>หนัก:</strong> พูดได้ทีละคำ หอบเหนื่อยมาก</li></ul></div><div className="bg-purple-50 p-4 rounded-2xl border border-purple-100"><h3 className="font-bold text-gray-800 mb-2 text-[15px] flex items-center gap-2">{renderIcon("heart-pulse", 18, "#9333ea")} 2. Heart Rate (ชีพจร)</h3><div className="bg-white px-3 py-2 rounded-lg text-sm text-center mb-3 font-medium text-purple-800 border border-purple-100">Max HR (ชีพจรสูงสุด) = 220 - อายุ</div><ul className="space-y-2 text-[13px] text-gray-600"><li className="flex justify-between border-b border-purple-100 pb-1"><span>เบา</span> <span>50-63% Max HR</span></li><li className="flex justify-between border-b border-purple-100 pb-1 font-bold text-purple-700"><span>ปานกลาง</span> <span>64-76% Max HR</span></li><li className="flex justify-between text-red-700"><span>หนัก</span> <span>77-93% Max HR</span></li></ul></div></div></div></div> );
             if (activeDetail === 'T1') return ( <div className="bg-white min-h-screen no-print pb-12 animate-fade-in"><div className="relative h-64"><img src="https://images.unsplash.com/photo-1499540633125-484965b60031?w=800&auto=format&fit=crop" className="w-full h-full object-cover" alt="Time" /><button onClick={() => setActiveDetail(null)} className="absolute top-4 left-4 bg-white/90 p-2.5 rounded-full shadow-lg backdrop-blur-sm active:scale-95 text-gray-800">{renderIcon("chevron-left", 24)}</button></div><div className="p-6 -mt-10 relative bg-white rounded-t-3xl shadow-[0_-10px_15px_-3px_rgba(0,0,0,0.1)]"><div className="inline-flex items-center gap-2 px-3 py-1.5 bg-green-100 text-green-700 font-bold rounded-full text-sm mb-4">{renderIcon("timer", 16)} T - Time</div><h2 className="text-2xl font-extrabold text-gray-800 mb-4">ระยะเวลา (นานแค่ไหน?)</h2><div className="space-y-4 text-gray-600 leading-relaxed text-[15px]"><p>ขึ้นอยู่กับ "ความหนัก" (Intensity) ของกิจกรรมในวันนั้น:</p><div className="bg-white p-4 rounded-2xl shadow-sm border border-l-4 border-l-yellow-400"><h4 className="font-bold text-gray-800 mb-1">กิจกรรมระดับปานกลาง</h4><p className="text-sm text-gray-500 mb-2">เดินเร็ว, ปั่นจักรยาน, ว่ายน้ำชิลๆ</p><div className="inline-block bg-yellow-50 text-yellow-700 font-semibold px-3 py-1 rounded-lg text-sm">150 - 300 นาที/สัปดาห์</div></div><div className="bg-white p-4 rounded-2xl shadow-sm border border-l-4 border-l-red-400"><h4 className="font-bold text-gray-800 mb-1">กิจกรรมระดับหนัก</h4><p className="text-sm text-gray-500 mb-2">วิ่ง, ชกมวย, กระโดดเชือก</p><div className="inline-block bg-red-50 text-red-700 font-semibold px-3 py-1 rounded-lg text-sm">75 - 150 นาที/สัปดาห์</div></div><div className="text-[13px] text-green-800 bg-green-50 p-3 rounded-xl"><strong>*ข้อควรระวัง:</strong> เวลาเหล่านี้ไม่รวม Warm-up และ Cool-down (อย่างละ 5-10 นาที)</div></div></div></div> );
@@ -232,7 +231,8 @@
         };
 
         const TableContent = ({ onBack }) => {
-            const days = ['จันทร์', 'อังคาร', 'พุธ', 'พฤหัสบดี', 'ศุกร์', 'เสาร์', 'อาทิตย์'];
+            // 2. แก้ไขให้เริ่มจากวันอาทิตย์
+            const days = ['อาทิตย์', 'จันทร์', 'อังคาร', 'พุธ', 'พฤหัสบดี', 'ศุกร์', 'เสาร์'];
             const tableRef = useRef(null);
 
             const handleDownloadImage = () => {
@@ -269,35 +269,39 @@
                             </button>
                         </div>
                     </div>
-                    <div className="p-4 md:p-8 w-full max-w-5xl mx-auto overflow-x-auto print:overflow-visible print:max-w-none print:p-0 print:m-0">
-                        <div ref={tableRef} className="min-w-[800px] print:min-w-0 print:w-full bg-[#faf9f6] p-4 print:p-0 rounded-xl">
-                            <div className="flex justify-between items-end border-b-2 border-[#8c7362] pb-4 mb-6 print:mb-3">
-                                <h1 className="text-3xl font-bold text-[#5c4a3d]">ตารางการออกกำลังกายส่วนบุคคล</h1>
-                                <div className="text-xl text-[#5c4a3d] font-medium">เดือน : ..............................................</div>
+                    <div className="p-4 md:p-8 w-full max-w-5xl mx-auto overflow-x-auto print:overflow-hidden print:max-w-none print:p-0 print:m-0">
+                        <div ref={tableRef} className="min-w-[800px] print:min-w-0 print:w-full bg-[#faf9f6] p-4 print:p-2 rounded-xl">
+                            <div className="flex justify-between items-end border-b-2 border-[#8c7362] pb-4 mb-4 print:mb-2">
+                                <h1 className="text-3xl print:text-2xl font-bold text-[#5c4a3d]">ตารางการออกกำลังกายส่วนบุคคล</h1>
+                                <div className="text-xl print:text-lg text-[#5c4a3d] font-medium">เดือน : ..............................................</div>
                             </div>
                             <table className="w-full border-collapse bg-white shadow-sm print:shadow-none table-fixed">
                                 <thead>
                                     <tr>
-                                        {days.map((day, i) => (
-                                            <th key={day} className={`p-3 text-center border border-[#e6ddd6] bg-[#f8f5f1] ${i >= 5 ? 'text-[#c27a7a]' : 'text-[#8c7362]'} font-semibold text-lg print:text-xl w-[14.28%]`}>
-                                                วัน{day}
-                                            </th>
-                                        ))}
+                                        {days.map((day, i) => {
+                                            // ปรับให้ index 0 (อาทิตย์) และ 6 (เสาร์) เป็นสีแดง
+                                            const isWeekend = i === 0 || i === 6;
+                                            return (
+                                                <th key={day} className={`p-3 text-center border border-[#e6ddd6] bg-[#f8f5f1] ${isWeekend ? 'text-[#c27a7a]' : 'text-[#8c7362]'} font-semibold text-lg print:text-base w-[14.28%]`}>
+                                                    วัน{day}
+                                                </th>
+                                            );
+                                        })}
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {[1, 2, 3, 4, 5].map((row) => (
                                         <tr key={row}>
                                             {[1, 2, 3, 4, 5, 6, 7].map((col) => (
-                                                <td key={col} className="p-2 border border-[#e6ddd6] h-[100px] print:h-[110px] align-top relative">
-                                                    <div className="w-6 h-6 rounded bg-[#f0eadd]"></div>
+                                                <td key={col} className="p-2 border border-[#e6ddd6] h-[100px] print:h-[75px] align-top relative">
+                                                    <div className="w-6 h-6 print:w-5 print:h-5 rounded bg-[#f0eadd]"></div>
                                                 </td>
                                             ))}
                                         </tr>
                                     ))}
                                 </tbody>
                             </table>
-                            <div className="mt-8 print:mt-6 flex gap-12 text-xl print:text-2xl text-[#5c4a3d] font-medium">
+                            <div className="mt-8 print:mt-4 flex gap-12 text-xl print:text-lg text-[#5c4a3d] font-medium">
                                 <div>ชื่อ : .....................................................................</div>
                                 <div>อายุ : ...................... ปี</div>
                             </div>
@@ -340,7 +344,6 @@
             const chairRes = getAssessmentResult('chair', chairRaw, age, gender);
             const kneeRes = getAssessmentResult('knee', kneeRaw, age, gender);
 
-            // ดึงข้อมูลสำหรับตารางเกณฑ์อ้างอิง
             const activeGripIndex = showGrip ? (gender === 'M' ? gripM : gripF).findIndex(r => numAge <= r[0]) : -1;
             const activeChair60Index = (showChair && numAge < 60) ? (gender === 'M' ? chair60M : chair60F).findIndex(r => numAge <= r[0]) : -1;
             const activeChair30Index = (showChair && numAge >= 60) ? (gender === 'M' ? chair30M : chair30F).findIndex(r => numAge <= r[0]) : -1;
@@ -396,7 +399,6 @@
 
                     {isValidAge && (
                         <div className="space-y-4 mb-8">
-                            {/* Grip Strength */}
                             {showGrip && (
                                 <div className="bg-white p-5 rounded-[24px] shadow-sm border border-gray-100 relative">
                                     <h3 className="font-bold text-gray-800 text-lg mb-1">แรงบีบมือ</h3>
@@ -419,7 +421,6 @@
                                 </div>
                             )}
 
-                            {/* Chair Stand */}
                             {showChair && (
                                 <div className="bg-white p-5 rounded-[24px] shadow-sm border border-gray-100">
                                     <h3 className="font-bold text-gray-800 text-lg mb-1">ยืน-นั่ง บนเก้าอี้</h3>
@@ -436,7 +437,6 @@
                                 </div>
                             )}
 
-                            {/* Knee Lift */}
                             {showKnee && (
                                 <div className="bg-white p-5 rounded-[24px] shadow-sm border border-gray-100">
                                     <h3 className="font-bold text-gray-800 text-lg mb-1">ยืนยกเข่าขึ้นลง</h3>
@@ -455,7 +455,6 @@
                         </div>
                     )}
 
-                    {/* ส่วนแสดงตารางอ้างอิงแบบไดนามิก (จะแสดงเมื่อกรอกอายุถูกต้อง) */}
                     {isValidAge && (
                         <div className="mt-8 mb-4 border-t border-gray-200 pt-8 animate-fade-in">
                             <div className="bg-white p-5 rounded-[24px] shadow-sm border border-gray-200">
@@ -466,55 +465,11 @@
                                     เกณฑ์สำหรับ <strong>{gender === 'M' ? 'เพศชาย' : 'เพศหญิง'}</strong> แถบสีฟ้าคือเกณฑ์ในช่วงอายุของคุณ ช่วยให้รู้ว่าต้องทำอีกเท่าไรถึงจะเปลี่ยนระดับ
                                 </p>
                                 
-                                {showGrip && (
-                                    <ReferenceTable 
-                                        title="💪 เกณฑ์แรงบีบมือ (กิโลกรัม/น้ำหนักตัว)" 
-                                        data={gender === 'M' ? gripM : gripF} 
-                                        labels={gripLabels} 
-                                        isDecimal={true} 
-                                        activeAgeIndex={activeGripIndex} 
-                                    />
-                                )}
-                                
-                                {showChair && numAge < 60 && (
-                                    <ReferenceTable 
-                                        title="🪑 เกณฑ์ยืน-นั่ง 60 วินาที (ครั้ง)" 
-                                        data={gender === 'M' ? chair60M : chair60F} 
-                                        labels={chair60Labels} 
-                                        isDecimal={false} 
-                                        activeAgeIndex={activeChair60Index} 
-                                    />
-                                )}
-                                
-                                {showChair && numAge >= 60 && (
-                                    <ReferenceTable 
-                                        title="🪑 เกณฑ์ยืน-นั่ง 30 วินาที (ครั้ง)" 
-                                        data={gender === 'M' ? chair30M : chair30F} 
-                                        labels={chair30Labels} 
-                                        isDecimal={false} 
-                                        activeAgeIndex={activeChair30Index} 
-                                    />
-                                )}
-                                
-                                {showKnee && numAge < 60 && (
-                                    <ReferenceTable 
-                                        title="🏃‍♂️ เกณฑ์ยืนยกเข่า 3 นาที (ครั้ง)" 
-                                        data={gender === 'M' ? knee3M : knee3F} 
-                                        labels={knee3Labels} 
-                                        isDecimal={false} 
-                                        activeAgeIndex={activeKnee3Index} 
-                                    />
-                                )}
-                                
-                                {showKnee && numAge >= 60 && (
-                                    <ReferenceTable 
-                                        title="🏃‍♂️ เกณฑ์ยืนยกเข่า 2 นาที (ครั้ง)" 
-                                        data={gender === 'M' ? knee2M : knee2F} 
-                                        labels={knee2Labels} 
-                                        isDecimal={false} 
-                                        activeAgeIndex={activeKnee2Index} 
-                                    />
-                                )}
+                                {showGrip && <ReferenceTable title="💪 เกณฑ์แรงบีบมือ (กิโลกรัม/น้ำหนักตัว)" data={gender === 'M' ? gripM : gripF} labels={gripLabels} isDecimal={true} activeAgeIndex={activeGripIndex} />}
+                                {showChair && numAge < 60 && <ReferenceTable title="🪑 เกณฑ์ยืน-นั่ง 60 วินาที (ครั้ง)" data={gender === 'M' ? chair60M : chair60F} labels={chair60Labels} isDecimal={false} activeAgeIndex={activeChair60Index} />}
+                                {showChair && numAge >= 60 && <ReferenceTable title="🪑 เกณฑ์ยืน-นั่ง 30 วินาที (ครั้ง)" data={gender === 'M' ? chair30M : chair30F} labels={chair30Labels} isDecimal={false} activeAgeIndex={activeChair30Index} />}
+                                {showKnee && numAge < 60 && <ReferenceTable title="🏃‍♂️ เกณฑ์ยืนยกเข่า 3 นาที (ครั้ง)" data={gender === 'M' ? knee3M : knee3F} labels={knee3Labels} isDecimal={false} activeAgeIndex={activeKnee3Index} />}
+                                {showKnee && numAge >= 60 && <ReferenceTable title="🏃‍♂️ เกณฑ์ยืนยกเข่า 2 นาที (ครั้ง)" data={gender === 'M' ? knee2M : knee2F} labels={knee2Labels} isDecimal={false} activeAgeIndex={activeKnee2Index} />}
                             </div>
                         </div>
                     )}
