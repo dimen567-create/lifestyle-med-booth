@@ -45,25 +45,14 @@
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
 
-        /* Print Styles - แก้ไขลดขอบและป้องกันการแตกหน้า */
         @media print {
-            body, html { 
-                background: white !important; 
-                margin: 0 !important; 
-                padding: 0 !important; 
-                min-height: auto !important;
-            }
+            body, html { background: white !important; margin: 0 !important; padding: 0 !important; min-height: auto !important; }
             .print-full-width { max-width: none !important; margin: 0 !important; padding: 0 !important; }
             .no-print { display: none !important; }
             #root { min-height: 0 !important; }
-            
-            /* ลดระยะขอบกระดาษลงเพื่อให้มีพื้นที่ตารางมากขึ้นในมือถือ */
             @page { size: A4 landscape; margin: 5mm; }
-            
             * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
             ::-webkit-scrollbar { display: none !important; }
-            
-            /* บังคับไม่ให้ตารางฉีกขาดไปหน้า 2 */
             table { page-break-inside: avoid; }
             tr { page-break-inside: avoid; page-break-after: auto; }
         }
@@ -219,19 +208,86 @@
                     </button>
                     <div className="mb-6">
                         <h1 className="text-2xl font-extrabold text-gray-800 mb-1">การออกกำลังกายตามวัย</h1>
-                        <p className="text-gray-500 text-sm">หลักการและเป้าหมายทางสรีรวิทยา</p>
+                        <p className="text-gray-500 text-sm">หลักการและเป้าหมายทางสรีรวิทยา (ฉบับเข้าใจง่าย)</p>
                     </div>
+
                     <div className="space-y-6">
-                        <div className="bg-white rounded-[24px] shadow-sm overflow-hidden border border-gray-100"><div className="h-44 relative"><img src="https://images.unsplash.com/photo-1472162072942-cd5147eb3902?w=800&auto=format&fit=crop" className="w-full h-full object-cover" alt="Kids" /><div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex items-end p-5"><h3 className="text-xl font-bold text-white">วัยเด็กและวัยรุ่น</h3></div></div><div className="p-5 space-y-4"><div className="bg-blue-50 p-3 rounded-xl text-[13px] text-blue-800 border border-blue-100"><strong>ทำไมต้องวัยนี้?</strong> เป็นช่วงเดียวที่ร่างกายสะสม "มวลกระดูกสูงสุด" ได้ การกระแทกจากการเล่นกีฬาจะช่วยสร้างมวลกระดูกให้แข็งแรงไปตลอดชีวิต</div><ul className="text-[14px] text-gray-600 space-y-2"><li><strong>เป้าหมาย:</strong> พัฒนาทักษะเคลื่อนไหว และความแข็งแรงกระดูก</li><li><strong>รูปแบบ:</strong> กิจกรรมรับน้ำหนักตัว (วิ่ง กระโดดเชือก กีฬาเป็นทีม)</li><li><strong>เวลา:</strong> อย่างน้อย 60 นาที/วัน (สะสมได้)</li></ul></div></div>
-                        <div className="bg-white rounded-[24px] shadow-sm overflow-hidden border border-gray-100"><div className="h-44 relative"><img src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=800&auto=format&fit=crop" className="w-full h-full object-cover" alt="Adults" /><div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex items-end p-5"><h3 className="text-xl font-bold text-white">วัยทำงาน</h3></div></div><div className="p-5 space-y-4"><div className="bg-purple-50 p-3 rounded-xl text-[13px] text-purple-800 border border-purple-100"><strong>ทำไมต้องวัยนี้?</strong> ระบบเผาผลาญเริ่มลดลง เสี่ยงออฟฟิศซินโดรมและโรค NCDs จำเป็นต้องสร้างกล้ามเนื้อเพื่อช่วยเผาผลาญ</div><ul className="text-[14px] text-gray-600 space-y-2"><li><strong>เป้าหมาย:</strong> รักษามวลกล้ามเนื้อ ควบคุมสัดส่วน ลดเครียด</li><li><strong>รูปแบบ:</strong> ผสมผสาน! Cardio เพื่อหัวใจ + Weight Training เพื่อกล้ามเนื้อ + โยคะยืดเหยียด</li><li><strong>เวลา:</strong> Cardio 150 นาที/สัปดาห์ + เวท 2-3 วัน</li></ul></div></div>
-                        <div className="bg-white rounded-[24px] shadow-sm overflow-hidden border border-gray-100"><div className="h-44 relative"><img src="https://images.pexels.com/photos/8940499/pexels-photo-8940499.jpeg?auto=compress&cs=tinysrgb&w=800" className="w-full h-full object-cover" alt="Seniors" /><div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex items-end p-5"><h3 className="text-xl font-bold text-white">วัยผู้สูงอายุ</h3></div></div><div className="p-5 space-y-4"><div className="bg-teal-50 p-3 rounded-xl text-[13px] text-teal-800 border border-teal-100"><strong>ทำไมต้องวัยนี้?</strong> ปัญหาหลักคือ "มวลกล้ามเนื้อฝ่อ" ทำให้ทรงตัวไม่อยู่ การหกล้มมีอันตรายถึงชีวิต</div><ul className="text-[14px] text-gray-600 space-y-2"><li><strong>เป้าหมาย:</strong> ป้องกันการหกล้ม (Fall Prevention)</li><li><strong>รูปแบบ:</strong> ฝึกการทรงตัว (Balance) เช่น รำไทเก็ก และแรงต้านเบาๆ (ยางยืด)</li><li><strong>ความหนัก:</strong> ระดับเบา-ปานกลาง (Talk test: ร้องเพลงไม่ได้แต่พูดได้)</li></ul></div></div>
+                        {/* Kids */}
+                        <div className="bg-white rounded-[24px] shadow-sm overflow-hidden border border-gray-100">
+                            <div className="h-44 relative">
+                                <img src="https://images.unsplash.com/photo-1472162072942-cd5147eb3902?w=800&auto=format&fit=crop" className="w-full h-full object-cover" alt="Kids" />
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex items-end p-5">
+                                    <h3 className="text-xl font-bold text-white">วัยเด็กและวัยรุ่น</h3>
+                                </div>
+                            </div>
+                            <div className="p-5 space-y-4">
+                                <div className="bg-blue-50 p-3 rounded-xl text-[13px] text-blue-800 border border-blue-100">
+                                    <strong>เป้าหมายสำคัญ:</strong> วัยนี้ไม่ต้องเน้นแค่ให้เหนื่อย แต่ต้องเน้น <strong>สนุก พัฒนากระดูก และฝึกควบคุมร่างกาย</strong> เพราะเป็นช่วงเดียวที่สะสม "มวลกระดูก" ได้ดีที่สุด
+                                </div>
+                                <ul className="text-[14px] text-gray-600 space-y-3">
+                                    <li className="flex gap-2 items-start"><div className="text-blue-500 mt-0.5">{renderIcon("activity", 16)}</div><div><strong>บริหารหัวใจ:</strong> วิ่งเล่น ว่ายน้ำ ปั่นจักรยาน เล่นฟุตบอล</div></li>
+                                    <li className="flex gap-2 items-start"><div className="text-blue-500 mt-0.5">{renderIcon("bone", 16)}</div><div><strong>สร้างมวลกระดูก (รับน้ำหนักตัว):</strong> กระโดดเชือก กระโดดตบ วิ่ง (แรงกระแทกช่วยให้กระดูกแข็งแรง)</div></li>
+                                    <li className="flex gap-2 items-start"><div className="text-blue-500 mt-0.5">{renderIcon("dumbbell", 16)}</div><div><strong>เสริมกล้ามเนื้อ:</strong> โหนบาร์ ปีนป่าย ชักเย่อ (ใช้พลังจากตัวเอง ไม่ต้องยกเหล็ก)</div></li>
+                                </ul>
+                                <div className="text-xs text-gray-500 bg-gray-50 p-2 rounded border border-gray-100">💡 <strong>เทคนิค:</strong> เด็กเล็กอาจใช้เกมสมมติ "กระโดดเหมือนกบ วิ่งเหมือนเสือ" หรือ เล่นสลับพัก ให้ได้วันละ 60 นาที</div>
+                            </div>
+                        </div>
+
+                        {/* Adults */}
+                        <div className="bg-white rounded-[24px] shadow-sm overflow-hidden border border-gray-100">
+                            <div className="h-44 relative">
+                                <img src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=800&auto=format&fit=crop" className="w-full h-full object-cover" alt="Adults" />
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex items-end p-5">
+                                    <h3 className="text-xl font-bold text-white">วัยทำงาน</h3>
+                                </div>
+                            </div>
+                            <div className="p-5 space-y-4">
+                                <div className="bg-purple-50 p-3 rounded-xl text-[13px] text-purple-800 border border-purple-100">
+                                    <strong>เป้าหมายสำคัญ:</strong> วัยนี้นั่งนาน ขยับน้อย เสี่ยงออฟฟิศซินโดรม ต้องเน้น <strong>คุมน้ำหนัก ลดเครียด และสร้างกล้ามเนื้อ</strong> เพื่อช่วยระบบเผาผลาญ
+                                </div>
+                                <ul className="text-[14px] text-gray-600 space-y-3">
+                                    <li className="flex gap-2 items-start"><div className="text-purple-500 mt-0.5">{renderIcon("heart-pulse", 16)}</div><div><strong>ขยับหัวใจ (คาร์ดิโอ):</strong> เดินเร็ว ว่ายน้ำ เต้น (ให้เหนื่อยระดับ "พูดได้แต่ร้องเพลงไม่จบ") 150 นาที/สัปดาห์</div></li>
+                                    <li className="flex gap-2 items-start"><div className="text-purple-500 mt-0.5">{renderIcon("dumbbell", 16)}</div><div><strong>สร้างกล้ามเนื้อ (เวทเทรนนิ่ง):</strong> ลุกนั่ง (Squat) ยกขวดน้ำ ดันกำแพง อย่างน้อย 2 วัน/สัปดาห์ (กล้ามเนื้อช่วยเผาผลาญไขมัน)</div></li>
+                                    <li className="flex gap-2 items-start"><div className="text-purple-500 mt-0.5">{renderIcon("stretch-horizontal", 16)}</div><div><strong>ยืดเหยียด (ลดปวดตึง):</strong> หมุนไหล่ ก้มเงยคอ ยืดหลัง แก้ปัญหาคนทำงานหน้าคอมฯ</div></li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        {/* Seniors */}
+                        <div className="bg-white rounded-[24px] shadow-sm overflow-hidden border border-gray-100">
+                            <div className="h-44 relative">
+                                <img src="https://images.pexels.com/photos/8940499/pexels-photo-8940499.jpeg?auto=compress&cs=tinysrgb&w=800" className="w-full h-full object-cover" alt="Seniors" />
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex items-end p-5">
+                                    <h3 className="text-xl font-bold text-white">วัยผู้สูงอายุ (60 ปีขึ้นไป)</h3>
+                                </div>
+                            </div>
+                            <div className="p-5 space-y-4">
+                                <div className="bg-teal-50 p-3 rounded-xl text-[13px] text-teal-800 border border-teal-100">
+                                    <strong>เป้าหมายสำคัญ:</strong> ไม่ได้ออกเพื่อแค่ให้ร่างกายเฟิร์ม แต่เพื่อ <strong>ใช้ชีวิตเองได้ ปลอดภัย และ "ป้องกันการหกล้ม"</strong>
+                                </div>
+                                <ul className="text-[14px] text-gray-600 space-y-3">
+                                    <li className="flex gap-2 items-start"><div className="text-teal-500 mt-0.5">{renderIcon("shield-check", 16)}</div><div><strong>ฝึกการทรงตัว (กันล้ม):</strong> ยืนเท้าชิด เดินต่อเท้า รำไทเก็ก (สำคัญมากเพื่อลดอุบัติเหตุ)</div></li>
+                                    <li className="flex gap-2 items-start"><div className="text-teal-500 mt-0.5">{renderIcon("armchair", 16)}</div><div><strong>เพิ่มแรงขา-แขน (ใช้ในชีวิตจริง):</strong> ลุก-นั่งเก้าอี้ซ้ำๆ เขย่งปลายเท้า ดึงยางยืด (ช่วยให้ลุกเดินเองได้)</div></li>
+                                    <li className="flex gap-2 items-start"><div className="text-teal-500 mt-0.5">{renderIcon("sun", 16)}</div><div><strong>บริหารหัวใจเบาๆ:</strong> เดินเล่นในสวน ปั่นจักรยานอยู่กับที่ (เอาแค่เหนื่อยพอพูดคุยได้)</div></li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        {/* Summary Box */}
+                        <div className="bg-gradient-to-br from-indigo-500 to-purple-600 p-5 rounded-[24px] text-white shadow-md">
+                            <h3 className="font-bold text-lg mb-3">🧠 สรุปจำง่ายๆ (ต่างวัย ต่างเป้าหมาย)</h3>
+                            <ul className="space-y-2 text-[14px]">
+                                <li className="bg-white/10 p-2 rounded-lg">👦 <strong>เด็ก : เล่นให้หลากหลาย</strong><br/><span className="opacity-80 text-xs">🏃 วิ่ง + 🤸 กระโดด + ⚽ เล่นกีฬา</span></li>
+                                <li className="bg-white/10 p-2 rounded-lg">👨‍💼 <strong>วัยทำงาน : สร้างกล้ามเนื้อและหัวใจ</strong><br/><span className="opacity-80 text-xs">❤️ คาร์ดิโอ + 💪 เวทเทรนนิ่ง + 🧘 ยืดเหยียด</span></li>
+                                <li className="bg-white/10 p-2 rounded-lg">👴 <strong>ผู้สูงอายุ : แข็งแรงและไม่ล้ม</strong><br/><span className="opacity-80 text-xs">💪 เพิ่มแรงขา + ⚖️ ฝึกทรงตัว + 🚶 เดินเล่น</span></li>
+                            </ul>
+                        </div>
                     </div>
                 </div>
             );
         };
 
         const TableContent = ({ onBack }) => {
-            // 2. แก้ไขให้เริ่มจากวันอาทิตย์
             const days = ['อาทิตย์', 'จันทร์', 'อังคาร', 'พุธ', 'พฤหัสบดี', 'ศุกร์', 'เสาร์'];
             const tableRef = useRef(null);
 
@@ -279,7 +335,6 @@
                                 <thead>
                                     <tr>
                                         {days.map((day, i) => {
-                                            // ปรับให้ index 0 (อาทิตย์) และ 6 (เสาร์) เป็นสีแดง
                                             const isWeekend = i === 0 || i === 6;
                                             return (
                                                 <th key={day} className={`p-3 text-center border border-[#e6ddd6] bg-[#f8f5f1] ${isWeekend ? 'text-[#c27a7a]' : 'text-[#8c7362]'} font-semibold text-lg print:text-base w-[14.28%]`}>
